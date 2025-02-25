@@ -29,14 +29,6 @@
 import "Utils.mag": Z, Q, OO, LAST, TOWER;
 import "FldPad.mag": PRIME, INERT, EISEN;
 
-declare type HassHerbTransFunc;
-declare attributes HassHerbTransFunc
-  : degree                 // REQ: the degree of the extension
-  , vertices               // REQ: the coordinates of the breaks
-  // cache
-  , ramification_polygon   // RamificationPolygon(*)
-  ;
-
 declare attributes RngUPolElt_FldPadExact
   // cache
   : ramification_residual_polynomials
@@ -467,93 +459,4 @@ end intrinsic;
 
 ///### Operations
 
-///hide
-intrinsic Print(h :: HassHerbTransFunc, lvl :: MonStgElt)
-  {Prints h.}
-    printf "Hasse-Herbrand transition function of an extension of ramification degree %o", h`degree;
-end intrinsic;
-
-intrinsic Degree(h :: HassHerbTransFunc) -> RngIntElt
-  {The degree of the extension this is the transition function of.}
-  return h`degree;
-end intrinsic;
-
-intrinsic Vertices(h :: HassHerbTransFunc) -> []
-  {The vertices of the function.}
-  return h`vertices;
-end intrinsic;
-
-intrinsic LowerBreaks(h :: HassHerbTransFunc) -> []
-  {The lower breaks of h.}
-  return [x[1] : x in Vertices(h)];
-end intrinsic;
-
-intrinsic UpperBreaks(h :: HassHerbTransFunc) -> []
-  {The upper breaks of h.}
-  return [x[2] : x in Vertices(h)];
-end intrinsic;
-
-intrinsic 'eq'(h1 :: HassHerbTransFunc, h2 :: HassHerbTransFunc) -> BoolElt
-  {True if h1 and h2 are equal as field invariants, i.e. they define the same function.}
-  return Degree(h1) eq Degree(h2) and Vertices(h1) eq Vertices(h2);
-end intrinsic;
-
-intrinsic '@'(v, h :: HassHerbTransFunc) -> .
-  {Evaluates h at v.}
-  if v le 0 then
-    return (Q!1) * v;
-  end if;
-  for i in [2..#h`vertices] do
-    v1, u1 := Explode(h`vertices[i]);
-    if v le v1 then
-      v0, u0 := Explode(h`vertices[i-1]);
-      return u0 + (v-v0)*(u1-u0)/(v1-v0);
-    end if;
-  end for;
-  v1, u1 := Explode(LAST(h`vertices));
-  assert v gt v1;
-  return u1 + (v-v1) / h`degree;
-end intrinsic;
-
-intrinsic '@@'(u, h :: HassHerbTransFunc) -> .
-  {The inverse of h at u.}
-  if u le 0 then
-    return (Q!1) * u;
-  end if;
-  for i in [2..#h`vertices] do
-    v1, u1 := Explode(h`vertices[i]);
-    if u le u1 then
-      v0, u0 := Explode(h`vertices[i-1]);
-      return v0 + (u-u0)*(v1-v0)/(u1-u0);
-    end if;
-  end for;
-  v1, u1 := Explode(LAST(h`vertices));
-  assert u gt u1;
-  return v1 + (u-u1) * h`degree;
-end intrinsic;
-
-intrinsic RamificationPolygon(h :: HassHerbTransFunc) -> NwtnPgon
-  {The ramification polygon of a totally ramified extension with the given transition function.}
-  if not assigned h`ramification_polygon then
-    e := h`degree;
-    vs := [<e, 0>];
-    vus := Vertices(h);
-    for i in [2..#vus] do
-      slope := -vus[i][1];
-      if i eq #vus then
-        x1 := 1;
-      else
-        v0, u0 := Explode(vus[i]);
-        v1, u1 := Explode(vus[i+1]);
-        x1 := Z ! (e * (u1 - u0) / (v1 - v0));
-      end if;
-      x0, y0 := Explode(LAST(vs));
-      assert x1 lt x0;
-      y1 := Z ! (y0 + slope*(x1-x0));
-      Append(~vs, <x1, y1>);
-    end for;
-    h`ramification_polygon := NewtonPolygon(vs : Faces:="Lower");
-  end if;
-  return h`ramification_polygon;
-end intrinsic;
 
