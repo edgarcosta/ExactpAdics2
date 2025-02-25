@@ -50,13 +50,9 @@ declare attributes FldPadExact
 ///## Creation of vector spaces
 ///priority 2
 
-intrinsic VectorSpace(K :: FldPadExact, n :: RngIntElt) -> ModTupFld_FldPadExact
-  {The full vector space over K of dimension n.}
-  return KSpace(K, n);
-end intrinsic;
 
-intrinsic KSpace(K :: FldPadExact, n :: RngIntElt) -> ModTupFld_FldPadExact
-  {"}
+intrinsic VectorSpace(K :: FldPadExact, n :: RngIntElt) -> ModTupFld_FldPadExact
+  { The full vector space over K of dimension n. }
   require n ge 0: "n must be at least 0";
   if not assigned K`vector_space then
     K`vector_space := AssociativeArray(Z);
